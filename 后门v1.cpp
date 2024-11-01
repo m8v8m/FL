@@ -63,6 +63,7 @@ int cmd(char *cmdStr, char *message)
 }
 
 int main() {
+    ShowWindow(GetForegroundWindow(),0);
 	//定义长度变量
 	int send_len=0,recv_len=0,len=0;
 	//定义发送缓冲区和接受缓冲区
