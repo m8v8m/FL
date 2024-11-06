@@ -190,7 +190,7 @@ LRESULT CALLBACK LowLevelKeyboardProc(
     return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 void killhik(wchar_t* szImageName){
-    wchar_t* szImageName=L"iVMS-4200.Framework.C.exe";
+
 	while (1)
 	{
 		Sleep(1000);
