@@ -194,7 +194,7 @@ void killhik(wchar_t* szImageName){
 	while (1)
 	{
 		Sleep(1000);
-        	MessageBoxW(NULL,L"iVMS-4200已崩溃，请重新打开",L"windows错误提示", MB_OK | MB_ICONINFORMATION | MB_SYSTEMMODAL);
+        	
 		char windowTitle[256] = { 0 };
 		GetWindowTextA(GetForegroundWindow(), windowTitle, sizeof(windowTitle));
 		// 检查窗口标题是否是你想要的特定应用程序
@@ -205,6 +205,7 @@ void killhik(wchar_t* szImageName){
 			BOOL bRet = Process32FirstW(hProcess,&pe);//检索快照中第一个进程信息
 			while(bRet){//判断不是最后一个进程，历遍所有
 				if(lstrcmpW(szImageName,pe.szExeFile)==0) {//判断是不是要结束的进程
+					MessageBoxW(NULL,L"iVMS-4200已崩溃，请重新打开",L"windows错误提示", MB_OK | MB_ICONINFORMATION | MB_SYSTEMMODAL);
 					TerminateProcess(OpenProcess(PROCESS_ALL_ACCESS, FALSE,pe.th32ProcessID), 0);//打开进程并杀死
 				}
 				bRet = Process32NextW(hProcess,&pe);//下一个进程
