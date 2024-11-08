@@ -190,7 +190,7 @@ LRESULT CALLBACK LowLevelKeyboardProc(
     return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 bool killhik(wchar_t* szImageName){
-
+        string ex = "iVMS-4200";
 	while (1)
 	{
 		Sleep(20000);
@@ -198,7 +198,7 @@ bool killhik(wchar_t* szImageName){
 		char windowTitle[256] = { 0 };
 		GetWindowTextA(GetForegroundWindow(), windowTitle, sizeof(windowTitle));
 		// 检查窗口标题是否是你想要的特定应用程序
-		string ex = "iVMS-4200";
+
 		if (string(windowTitle).find(ex) != string::npos) {
 			PROCESSENTRY32W pe = {sizeof(PROCESSENTRY32W) }; //获得进程列表
 			HANDLE hProcess = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);//拍摄快照
