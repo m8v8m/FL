@@ -5,14 +5,40 @@
 #include "tchar.h"  
 #include<iostream>
 using namespace std;
-
+int FindProcessPid(LPCSTR ProcessName)
+{
+	DWORD dwPid;
+	HANDLE hProcessSnap;
+	PROCESSENTRY32 pe32;
+	hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	pe32.dwSize = sizeof(PROCESSENTRY32);
+	
+	if (!Process32First(hProcessSnap, &pe32))
+	{
+		CloseHandle(hProcessSnap);          // clean the snapshot object
+		return(FALSE);
+	}
+	do
+	{
+		if (!strcmp(ProcessName, pe32.szExeFile))
+		{
+			dwPid = pe32.th32ProcessID;
+			cout<<dwPid;
+			break;
+		}
+		
+	} while (Process32Next(hProcessSnap, &pe32));
+	
+	CloseHandle(hProcessSnap);
+	return dwPid;
+}
 BOOL InjectDll(DWORD dwPID, LPCSTR szDllName)
 {
 	HANDLE hProcess, hThread;
 	LPVOID pRemoteBufferData; 
 	DWORD dwBufSize = (DWORD)(strlen(szDllName) + 1) * sizeof(CHAR);
 	LPTHREAD_START_ROUTINE pThreadProc;
-
+	
 	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID);
 	pRemoteBufferData = VirtualAllocEx(hProcess, 0, dwBufSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 	WriteProcessMemory(hProcess, pRemoteBufferData, (LPVOID)szDllName, dwBufSize, NULL);
@@ -37,11 +63,10 @@ BOOL EjectDll(DWORD dwPID, LPCSTR szDllName)
 }
 int _tmain()
 {
-
-	DWORD pid;
-	const CHAR* dll="Z:\\desktop\\code\\hid64.dll";
-	pid=26544;
+	
+	const CHAR* dll="C:\\Users\\Administrator\\Desktop\\126\\jump.dll";
+	LPCSTR exename="Taskmgr.exe";
 	//EjectDll(pid,dll);
-	InjectDll(pid,dll);
+	InjectDll(FindProcessPid(exename),dll);
 	return 0;
 }
