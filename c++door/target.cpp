@@ -1,23 +1,41 @@
 
 #include "values.h"
 
-
-void initialization();
+SOCKET he_socket;            //创建socket对象           
+sockaddr_in he_addr_info; 
+void initialization() {
+	WSADATA wsd;         //定义WSADATA对象
+	WSAStartup(MAKEWORD(2, 2), &wsd);
+	he_addr_info.sin_family = AF_INET;             //设置服务器地址家族
+	he_addr_info.sin_port = htons(6369);           //设置服务器端口号
+	he_addr_info.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
+	he_socket = socket(AF_INET, SOCK_STREAM, 0);
+}
 
 int main()
 {
-	serveraddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
-	initialization();
-	while(1){
 
-		if (listen(m_SockServer, 0) < 0){
-			std::cout << "设置监听状态失败！" << std::endl;
-			WSACleanup();
+	initialization();
+	
+	int con_status=connect(he_socket, (sockaddr*)&he_addr_info,sizeof(he_addr_info));
+	if (con_status<0){printf("con_status failed: %d\n", WSAGetLastError());}
+	while(1){
+		//memset(recv_msg, 0, sizeof(recv_msg));
+		memset(recv_msg, 0, 1024);
+		memset(send_msg, 0, 1024);
+		recv(he_socket, recv_msg, sizeof(recv_msg), 0); 
+		std::cout<<"[recv_msg]-->"<<recv_msg<<std::endl;
+		if (recv_msg[0]==*"@"){
+			extend_cmd(recv_msg);
+		}else{
+		std::cout<<"          input***",std::cin >> send_msg;			
 		}
-		*m_Server = accept(m_SockServer, (sockaddr*)&serveraddrfrom, &len);
-		int ires = send(*m_Server, target_msg, sizeof(target_msg), 0); 
+		std::cout<<"###############################################"<<std::endl;
+		std::cout<<send_msg<<std::endl;
+		send(he_socket, send_msg, sizeof(send_msg), 0); 
+		
 	}
-	closesocket(*m_Server);
+	closesocket(he_socket);
 	WSACleanup();
 	return 0;
 }
