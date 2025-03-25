@@ -18,21 +18,32 @@ int main()
 	initialization();
 	
 	int con_status=connect(he_socket, (sockaddr*)&he_addr_info,sizeof(he_addr_info));
+	cout<<con_status;
 	if (con_status<0){printf("con_status failed: %d\n", WSAGetLastError());}
-	while(1){
+	while(con_status==0){
 		//memset(recv_msg, 0, sizeof(recv_msg));
 		memset(recv_msg, 0, 1024);
 		memset(send_msg, 0, 1024);
 		recv(he_socket, recv_msg, sizeof(recv_msg), 0); 
 		std::cout<<"[recv_msg]-->"<<recv_msg<<std::endl;
-		if (recv_msg[0]==*"@"){
+		switch (recv_msg[0]) {
+		case *"@":
 			extend_cmd(recv_msg);
-		}else{
-		std::cout<<"          input***",std::cin >> send_msg;			
+			break;
+		case *"$":
+			send_file(he_socket,recv_msg);
+			if (recv(he_socket, recv_msg, sizeof(recv_msg), 0)>0){
+				cout<<recv_msg;
+				strcpy(send_msg,"file download success!");	
+			break;
+		default:
+			strcpy(send_msg,"default msg");		
+			break;
 		}
+
 		std::cout<<"###############################################"<<std::endl;
-		std::cout<<send_msg<<std::endl;
 		send(he_socket, send_msg, sizeof(send_msg), 0); 
+		cout<<"send:"<<send_msg<<endl;
 		
 	}
 	closesocket(he_socket);
