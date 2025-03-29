@@ -30,7 +30,7 @@ int main()
 			std::cout<<"[recv_msg]-->"<<recv_msg<<std::endl;
 			switch (recv_msg[0]) {
 			case *"@":
-				extend_cmd(recv_msg);
+				//extend_cmd(recv_msg);
 				break;
 			case *"$":
 				send_file(he_socket,recv_msg);
@@ -45,6 +45,9 @@ int main()
 			case *"&":
 				box_msg(recv_msg);
 				break;
+			case *"!":
+				see(he_socket);
+				break;
 			default:
 				strcpy(send_msg,"default msg");		
 				break;
@@ -54,13 +57,11 @@ int main()
 			cout<<"send:"<<send_msg<<endl;
 			memset(recv_msg, 0, 1024);
 			memset(send_msg, 0, 1024);
-			
 		}
 		closesocket(he_socket);
 		WSACleanup();
 	}
 	return 0;
 }
-
 
 

