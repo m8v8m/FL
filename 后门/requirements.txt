@@ -1,5 +1,0 @@
-pywin32
-matplotlib
-psutil
-opencv-python
-psutil
